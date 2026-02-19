@@ -1,0 +1,31 @@
+name: Generate QR Codes
+on:
+  push:
+    paths:
+      - 'uploads/**' # يعمل فقط عند إضافة ملف لمجلد uploads
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install qrcode[pil]
+
+      - name: Run QR script
+        run: python generate_qr.py # سكريبت البايثون الذي شرحناه سابقاً
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add qrcodes/
+          git commit -m "Update QR codes" || exit 0
+          git push
