@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مؤلف الكيو ار السريع</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        input[type="file"] { width: 100%; padding: 10px; margin: 20px 0; border: 1px solid #ddd; border-radius: 5px; }
+        button { background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        #status { margin-top: 15px; font-size: 14px; color: #555; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🚀 رفع ملف سريع</h2>
+    <p style="font-size: 13px; color: #666;">سيتم تحويل الملف تلقائياً إلى كيو ار دائم</p>
+    <input type="file" id="fileInput">
+    <button onclick="uploadToGithub()">رفع الآن</button>
+    <div id="status"></div>
+</div>
+
+<script>
+// ضع التوكن الخاص بك بين علامتي التنصيص بالأسفل
+const GITHUB_TOKEN = "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"; 
+
+async function uploadToGithub() {
+    const fileInput = document.getElementById('fileInput');
+    const status = document.getElementById('status');
+
+    if (!fileInput.files[0]) {
+        alert("من فضلك اختر ملفاً أولاً");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    status.innerText = "جاري المعالجة...";
+
+    reader.onload = async function() {
+        const content = reader.result.split(',')[1]; 
+        const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+        const url = `https://api.github.com/repos/elgoharymd/my-qr-vault/contents/uploads/${fileName}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${GITHUB_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Upload ${fileName}`,
+                    content: content
+                })
+            });
+
+            if (response.ok) {
+                const qrLink = `https://elgoharymd.github.io/my-qr-vault/qrcodes/${fileName}.png`;
+                status.innerHTML = `✅ تم الرفع!<br><br>انتظر 60 ثانية ثم ابحث عن الـ QR في مجلد qrcodes باسم:<br><b>${fileName}.png</b>`;
+            } else {
+                const err = await response.json();
+                status.innerText = "خطأ في الرفع: " + err.message;
+            }
+        } catch (error) {
+            status.innerText = "فشل الاتصال بـ GitHub";
+        }
+    };
+    reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>
